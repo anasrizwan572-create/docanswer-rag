@@ -1,0 +1,212 @@
+[
+  {
+    "id": 1,
+    "type": "single_section",
+    "question": "What is the length of the introductory probationary period for newly hired employees?",
+    "ground_truth": "Newly hired Class A and Class B employees are subject to a mandatory introductory probationary period of ninety (90) calendar days from their start date.",
+    "section": "Section 1.3"
+  },
+  {
+    "id": 2,
+    "type": "single_section",
+    "question": "What are the company's designated Core Collaboration Hours?",
+    "ground_truth": "Core Collaboration Hours are from 10:00 AM to 4:00 PM Eastern Standard Time (EST), Monday through Friday.",
+    "section": "Section 2.1"
+  },
+  {
+    "id": 3,
+    "type": "single_section",
+    "question": "How much is the one-time home office setup allowance for remote employees?",
+    "ground_truth": "Full-time remote or hybrid employees working at least 2 days remote are eligible for a one-time reimbursement of up to $800 USD.",
+    "section": "Section 2.3"
+  },
+  {
+    "id": 4,
+    "type": "single_section",
+    "question": "What is the monthly connectivity stipend provided to remote employees?",
+    "ground_truth": "Qualified remote employees receive a non-taxable monthly internet subsidy of $60 USD disbursed through payroll.",
+    "section": "Section 2.3"
+  },
+  {
+    "id": 5,
+    "type": "single_section",
+    "question": "How many business days per year can an employee work from an alternate location under Work from Anywhere?",
+    "ground_truth": "Employees may request to work from an alternate domestic or international location for up to twenty (20) business days per calendar year.",
+    "section": "Section 2.4"
+  },
+  {
+    "id": 6,
+    "type": "single_section",
+    "question": "How many unused PTO days can be carried forward, and when do they expire?",
+    "ground_truth": "A maximum of five (5) accrued but unused PTO days may be carried forward into the subsequent calendar year, and must be exhausted by March 31.",
+    "section": "Section 3.1.1"
+  },
+  {
+    "id": 7,
+    "type": "single_section",
+    "question": "When is a medical certificate required for sick leave absences?",
+    "ground_truth": "A medical certificate is mandatory for absences lasting 3 or more consecutive business days, single sick days adjacent to holidays/PTO, or exceeding 6 instances rolling 12-month.",
+    "section": "Section 3.2"
+  },
+  {
+    "id": 8,
+    "type": "single_section",
+    "question": "How many weeks of paid parental leave are primary caregivers entitled to after 12 months of service?",
+    "ground_truth": "Primary caregivers who have completed at least twelve (12) months of continuous service are entitled to sixteen (16) weeks of 100% paid parental leave.",
+    "section": "Section 3.3"
+  },
+  {
+    "id": 9,
+    "type": "single_section",
+    "question": "How many days of paid bereavement leave are provided for the loss of an immediate family member?",
+    "ground_truth": "Employees receive up to five (5) consecutive paid working days for immediate family members.",
+    "section": "Section 3.4"
+  },
+  {
+    "id": 10,
+    "type": "single_section",
+    "question": "What is the annual maximum cap for the Tuition Assistance Program?",
+    "ground_truth": "The Tuition Assistance Program provides up to $5,250 USD per calendar year for pre-approved accredited courses or degrees.",
+    "section": "Section 4.4"
+  },
+  {
+    "id": 11,
+    "type": "single_section",
+    "question": "What is the minimum grade required for tuition assistance reimbursement?",
+    "ground_truth": "Reimbursement requires a minimum grade of 'B' (or 'Pass' for pass/fail certifications).",
+    "section": "Section 4.4"
+  },
+  {
+    "id": 12,
+    "type": "single_section",
+    "question": "Within how many calendar days must travel and business expenses be submitted in Concur?",
+    "ground_truth": "Expenses must be submitted within thirty (30) calendar days of incurring the expense; expenses after sixty (60) days are rejected.",
+    "section": "Section 5.1"
+  },
+  {
+    "id": 13,
+    "type": "single_section",
+    "question": "What is the minimum dollar threshold above which an itemized receipt is mandatory for expenses?",
+    "ground_truth": "An itemized receipt is strictly mandatory for any individual expense item exceeding $25.00 USD.",
+    "section": "Section 5.1"
+  },
+  {
+    "id": 14,
+    "type": "single_section",
+    "question": "What is the maximum daily per diem meal allowance for business travel?",
+    "ground_truth": "The cumulative total daily per diem maximum for meals and beverages is $75.00 USD per traveler.",
+    "section": "Section 5.3"
+  },
+  {
+    "id": 15,
+    "type": "single_section",
+    "question": "What is the maximum allowable value for gifts received from vendors or clients?",
+    "ground_truth": "Employees may not accept gifts exceeding $50.00 USD, and total gifts from any single entity may not exceed $150.00 USD per year.",
+    "section": "Section 6.1"
+  },
+  {
+    "id": 16,
+    "type": "single_section",
+    "question": "What is the standard duration of a Performance Improvement Plan (PIP)?",
+    "ground_truth": "The standard PIP duration is thirty (30) calendar days, extendable to sixty (60) days only upon written consent of the HR Director.",
+    "section": "Section 8.2"
+  },
+  {
+    "id": 17,
+    "type": "single_section",
+    "question": "What is the mandatory notice period for voluntary resignation by Individual Contributors?",
+    "ground_truth": "Individual Contributors (Levels 1 to 3) must provide a mandatory minimum notice period of two (2) calendar weeks (14 days).",
+    "section": "Section 9.1"
+  },
+  {
+    "id": 18,
+    "type": "single_section",
+    "question": "What is the maximum severance pay cap in the event of involuntary redundancy?",
+    "ground_truth": "Total severance entitlement shall not exceed a maximum ceiling of sixteen (16) weeks' base pay.",
+    "section": "Section 9.3"
+  },
+  {
+    "id": 19,
+    "type": "single_section",
+    "question": "Within how many hours must all company hardware and property be returned following termination?",
+    "ground_truth": "All assigned laptops, monitors, cards, badges, and documentation must be returned within forty-eight (48) hours of termination.",
+    "section": "Section 9.4"
+  },
+  {
+    "id": 20,
+    "type": "single_section",
+    "question": "Within how many hours must a workplace injury be reported?",
+    "ground_truth": "Any workplace injury must be reported to the manager and Safety Coordinator within twenty-four (24) hours of occurrence.",
+    "section": "Section 11.2"
+  },
+  {
+    "id": 21,
+    "type": "multi_section",
+    "question": "Can an employee on probation work remotely or take discretionary annual leave?",
+    "ground_truth": "No. Under Section 1.3 and Section 2.2, remote work privileges remain restricted during the 90-day probationary period, and discretionary annual leave cannot be taken during probation except when pre-approved in writing at offer stage.",
+    "section": "Section 1.3, Section 2.2, Section 3.1"
+  },
+  {
+    "id": 22,
+    "type": "multi_section",
+    "question": "If an employee resigns 18 months after receiving tuition reimbursement, how much must they repay and how does the company recover it?",
+    "ground_truth": "Under Section 4.4 and Section 9.4, because resignation occurred between 13 and 24 months, the employee must repay 50% of the tuition funds received, which may be offset against final salary payments.",
+    "section": "Section 4.4, Section 9.4"
+  },
+  {
+    "id": 23,
+    "type": "multi_section",
+    "question": "What are the remote work restrictions and office attendance requirements for an employee placed on a Performance Improvement Plan (PIP)?",
+    "ground_truth": "Under Section 2.2 and Section 8.2, employees placed on a PIP have remote work privileges suspended and must attend the office five days a week until successful PIP completion.",
+    "section": "Section 2.2, Section 8.2"
+  },
+  {
+    "id": 24,
+    "type": "multi_section",
+    "question": "When an employee is laid off in an involuntary reduction in force (RIF), how is their 401(k) vesting and severance calculated?",
+    "ground_truth": "Under Section 4.2 and Section 9.3, all employer matching funds vest immediately at 100% as an exception, and severance is one week of base salary per completed year of service (minimum 2 weeks, maximum 16 weeks cap) plus 3 months COBRA subsidy.",
+    "section": "Section 4.2, Section 9.3"
+  },
+  {
+    "id": 25,
+    "type": "multi_section",
+    "question": "What notice period applies to a probationary employee resigning, and when must they return company property?",
+    "ground_truth": "Under Section 9.1 and Section 9.4, probationary employees must give 1 calendar week (7 days) notice, and all company equipment must be returned within 48 hours of termination.",
+    "section": "Section 9.1, Section 9.4"
+  },
+  {
+    "id": 26,
+    "type": "unanswerable",
+    "question": "What is the reimbursement limit and deductible for pet health insurance and veterinary expenses?",
+    "ground_truth": "I couldn't find this in the provided documents.",
+    "section": "Out-of-domain"
+  },
+  {
+    "id": 27,
+    "type": "unanswerable",
+    "question": "How are stock options and Restricted Stock Units (RSUs) granted and what is the equity vesting schedule?",
+    "ground_truth": "I couldn't find this in the provided documents.",
+    "section": "Out-of-domain"
+  },
+  {
+    "id": 28,
+    "type": "unanswerable",
+    "question": "Does Acme provide a monthly company car allowance or subsidized electric vehicle lease program?",
+    "ground_truth": "I couldn't find this in the provided documents.",
+    "section": "Out-of-domain"
+  },
+  {
+    "id": 29,
+    "type": "unanswerable",
+    "question": "What is the company subsidy for employee gym memberships and fitness club passes?",
+    "ground_truth": "I couldn't find this in the provided documents.",
+    "section": "Out-of-domain"
+  },
+  {
+    "id": 30,
+    "type": "unanswerable",
+    "question": "How many months of paid paternity leave are provided to contract workers residing in the United Kingdom?",
+    "ground_truth": "I couldn't find this in the provided documents.",
+    "section": "Out-of-domain"
+  }
+]

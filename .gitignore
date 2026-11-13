@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+.venv/
+env/
+venv/
+
+# Next.js
+.next/
+out/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel CLI cache
+.vercel/
+
+# OS artifacts
+Thumbs.db
+.DS_Store
