@@ -46,6 +46,7 @@ def make_response(answer, citations, found=True, confidence="high"):
 
 def test_gemini_generates_answer(monkeypatch, sample_chunks):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
     calls = []
 
     def fake_gemini(prompt, system=None):
@@ -73,6 +74,7 @@ def test_gemini_failure_uses_offline_fallback(
     monkeypatch, sample_chunks
 ):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
 
     def failing_gemini(prompt, system=None):
         raise RuntimeError("Simulated Gemini API failure")
@@ -96,6 +98,7 @@ def test_gemini_invalid_json_uses_offline_fallback(
     monkeypatch, sample_chunks
 ):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
 
     monkeypatch.setattr(
         generator,
@@ -116,6 +119,7 @@ def test_gemini_invalid_citation_retries(
     monkeypatch, sample_chunks
 ):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
     responses = [
         make_response(
             "Remote employees receive a stipend [9].",
@@ -150,6 +154,7 @@ def test_gemini_refusal_is_preserved(
     monkeypatch, sample_chunks
 ):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
 
     monkeypatch.setattr(
         generator,
@@ -173,6 +178,7 @@ def test_gemini_refusal_is_preserved(
 
 def test_citation_metadata_mapping(sample_chunks):
     generator = AnswerGenerator()
+    generator.gemini_client = object()
 
     monkeypatch = pytest.MonkeyPatch()
     try:
