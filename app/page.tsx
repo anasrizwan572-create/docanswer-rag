@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Search, 
   FileText, 
@@ -30,6 +30,13 @@ interface QueryResponse {
   confidence: 'high' | 'medium' | 'low';
   found: boolean;
 }
+interface DocumentInfo {
+  pages: number;
+  total_chunks: number;
+  bm25_chunks: number;
+  counts_match: boolean;
+  index_ready: boolean;
+}
 
 const EXAMPLE_QUESTIONS = [
   "What is the 401(k) company match and vesting schedule?",
@@ -42,9 +49,34 @@ const EXAMPLE_QUESTIONS = [
 export default function Home() {
   const [question, setQuestion] = useState('');
   const [loading, setLoading] = useState(false);
+  const [documentInfo, setDocumentInfo] = useState<DocumentInfo | null>(null);
+  const [indexStatus, setIndexStatus] = useState<'loading' | 'active' | 'error'>('loading');
   const [response, setResponse] = useState<QueryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeCitationId, setActiveCitationId] = useState<number | null>(null);
+  useEffect(() => {
+    const fetchDocumentInfo = async () => {
+      try {
+        const res = await fetch('/api/document-info');
+
+        if (!res.ok) {
+          throw new Error('Unable to fetch document information');
+        }
+
+        const data: DocumentInfo = await res.json();
+
+        setDocumentInfo(data);
+
+        setIndexStatus(
+          data.index_ready && data.counts_match ? 'active' : 'error'
+        );
+      } catch {
+        setIndexStatus('error');
+      }
+    };
+
+    fetchDocumentInfo();
+  }, []);
 
   const handleQuery = async (queryText: string) => {
     const q = queryText.trim();

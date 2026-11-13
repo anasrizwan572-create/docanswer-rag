@@ -37,3 +37,60 @@ def test_heading_detection_avoids_parenthetical_citations():
     detected_valid = detect_chunk_heading(valid_heading, default_sec)
     assert "3.2 Sick Leave" in detected_valid
 
+
+
+def test_chunking_does_not_cross_section_boundaries():
+    pages_data = [{
+        "page_num": 1,
+        "section": "General Information",
+        "text": (
+            "2.1 Standard Working Hours\n"
+            + ("FIRST_SECTION_MARKER employee working hours policy details. " * 20)
+            + "\n2.2 Remote Work Policy\n"
+            + ("SECOND_SECTION_MARKER remote work policy details. " * 20)
+        )
+    }]
+
+    chunks = chunk_document(pages_data, "test.pdf")
+
+    first_section = [
+        c for c in chunks
+        if c["section"] == "2.1 Standard Working Hours"
+    ]
+    second_section = [
+        c for c in chunks
+        if c["section"] == "2.2 Remote Work Policy"
+    ]
+
+    assert first_section
+    assert second_section
+
+    assert all(
+        "SECOND_SECTION_MARKER" not in c["text"]
+        for c in first_section
+    )
+    assert all(
+        "FIRST_SECTION_MARKER" not in c["text"]
+        for c in second_section
+    )
+
+
+def test_chunk_ids_are_unique_across_pages():
+    pages_data = [
+        {
+            "page_num": 1,
+            "section": "General Information",
+            "text": "First page contains enough text for a valid test chunk."
+        },
+        {
+            "page_num": 2,
+            "section": "General Information",
+            "text": "Second page contains enough text for a valid test chunk."
+        }
+    ]
+
+    chunks = chunk_document(pages_data, "test.pdf")
+    chunk_ids = [c["chunk_id"] for c in chunks]
+
+    assert len(chunk_ids) >= 2
+    assert len(chunk_ids) == len(set(chunk_ids))

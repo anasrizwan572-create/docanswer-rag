@@ -1,212 +1,252 @@
-# DocAnswer: Production-Minded Enterprise RAG Assistant
+﻿# DocAnswer — Document-Grounded AI Assistant
 
-**DocAnswer** is a trust-first Retrieval-Augmented Generation (RAG) assistant designed for professionals—lawyers, HR leadership, and clinical practices—who need plain-language answers to complex internal policies and contracts, backed by **exact, verifiable source passage citations**.
+A full-stack Retrieval-Augmented Generation (RAG) application that answers questions from an indexed company HR policy document and provides source-linked citations.
 
-In high-stakes professional environments, ungrounded extrapolation is dangerous. DocAnswer strictly enforces **zero-hallucination guardrails**: every factual claim carries an inline citation `[1]`, `[2]` mapped directly to a source passage and page number. If a policy question cannot be answered from the provided document, the system explicitly refuses with:
-> *"I couldn't find this in the provided documents."*
+DocAnswer combines semantic retrieval, BM25 keyword search, hybrid ranking, and answer-generation safeguards to help users locate relevant policy information.
 
----
+> **Important:** DocAnswer is a demonstration project, not a substitute for legal, HR, or professional advice. Always verify important decisions against the original document.
 
-## 🏛️ System Architecture
+## Features
+
+- Natural-language questions over an indexed HR policy.
+- Hybrid retrieval using ChromaDB and BM25.
+- Reciprocal Rank Fusion (RRF) for combining retrieval results.
+- Source citations containing document, page, and section information.
+- Structured API responses with confidence and retrieval status.
+- Refusal behavior when available document evidence is insufficient.
+- Deterministic embedding fallback for supported offline workflows.
+- Next.js chat interface with document status information.
+- Automated Python tests and a 30-question evaluation benchmark.
+
+## Architecture
 
 ```text
-+-----------------------------------------------------------------------------------------+
-|                                OFFLINE INGESTION PIPELINE                                |
-|                                                                                         |
-|  +-----------------------+     +------------------------+     +-----------------------+ |
-|  | data/                 | --> | scripts/ingest.py      | --> | RecursiveCharacter-   | |
-|  | acme_corp_hr_policy   |     | pypdf Page Extraction  |     | TextSplitter          | |
-|  | (16-Page Handbook)    |     | Heading Line Detection |     | (800 chars / 150 ovl) | |
-|  +-----------------------+     +------------------------+     +-----------------------+ |
-|                                                                           |             |
-|                        +--------------------------------------------------+             |
-|                        |                                                                |
-|                        v                                  v                             |
-|          +---------------------------+      +---------------------------+               |
-|          | Hosted Embedding Function |      | BM25 Lexical Inverted     |               |
-|          | (OpenAI / Voyage API)     |      | Indexer (Term Corpus)     |               |
-|          +---------------------------+      +---------------------------+               |
-|                        |                                  |                             |
-|                        v                                  v                             |
-|          +---------------------------+      +---------------------------+               |
-|          | index/chroma_db           |      | index/bm25_index.json     |               |
-|          | (Committed Vector DB)     |      | (Committed Keyword Store) |               |
-|          +---------------------------+      +---------------------------+               |
-+-----------------------------------------------------------------------------------------+
-                                         |
-                                (Committed to Git)
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------------+
-|                             VERCEL SERVERLESS RUNTIME (/api)                            |
-|                                                                                         |
-|  [Cold Start] -> Copy /index to /tmp/index (Vercel read-only filesystem workaround)     |
-|                                                                                         |
-|  User Question                                                                          |
-|       |                                                                                 |
-|       v                                                                                 |
-|  [Rate Limiter] (Sliding 30 req/min, Max 500 characters)                                |
-|       |                                                                                 |
-|       v                                                                                 |
-|  [HybridRetriever] <--- Retriever Interface (swappable for Chroma Cloud / pgvector)     |
-|       |                                                                                 |
-|       +--> Dense Vector Search (ChromaDB top-8)                                         |
-|       +--> Sparse Lexical Search (Okapi BM25 top-8)                                     |
-|       +--> Reciprocal Rank Fusion (RRF, k=60)                                           |
-|       +--> Cross-Scoring & Reranking (Top-4 passages with relevance scores)             |
-|       |                                                                                 |
-|       v                                                                                 |
-|  [AnswerGenerator]                                                                      |
-|       |                                                                                 |
-|       v                                                                                 |
-|  [Claude 3.5 Sonnet] (Anthropic API: ANTHROPIC_MODEL)                                   |
-|       |                                                                                 |
-|       v                                                                                 |
-|  [Programmatic Citation Post-Check]                                                     |
-|       +-- Checks every [k] in answer exists in retrieved passages                       |
-|       +-- If hallucinated citation detected -> Triggers 1 regeneration pass             |
-|       +-- Enforces exact refusal contract on unanswerable topics                        |
-|       |                                                                                 |
-|       v                                                                                 |
-|  Structured JSON Response                                                               |
-|  { answer, citations: [{id, source, page, section, text, score}], confidence, found }  |
-+-----------------------------------------------------------------------------------------+
-                                         |
-                                         v
-+-----------------------------------------------------------------------------------------+
-|                          NEXT.JS APP ROUTER FRONTEND (app/)                             |
-|                                                                                         |
-|  * Clean single-page professional chat UI                                               |
-|  * Interactive clickable [1], [2] badges linking to source passages                     |
-|  * Right-side slide-over panel displaying cited passages, page numbers, & scores        |
-|  * Prominent "Not Found in Documents" refusal alert card                                |
-|  * Legal verification disclaimer: "Verify important decisions against original document"|
-+-----------------------------------------------------------------------------------------+
+                 SOURCE DOCUMENT
+                       |
+                       v
+                scripts/ingest.py
+                       |
+              Text extraction and chunking
+                       |
+               +-------+-------+
+               |               |
+               v               v
+          ChromaDB           BM25
+          Vector Index     Keyword Index
+               |               |
+               +-------+-------+
+                       |
+                 Hybrid Retrieval
+                       |
+               Reciprocal Rank Fusion
+                       |
+                Answer Generation
+                       |
+             Citation Reference Checks
+                       |
+                 FastAPI Response
+                       |
+                 Next.js Frontend
 ```
 
----
+## Technology Stack
 
-## 📊 Evaluation Benchmark Results (`/eval/results.md`)
+| Layer | Technologies |
+|---|---|
+| Frontend | Next.js 14, React 18, TypeScript |
+| Styling | Tailwind CSS |
+| Backend | Python, FastAPI |
+| Validation | Pydantic |
+| Vector database | ChromaDB |
+| Keyword retrieval | BM25 |
+| Retrieval strategy | Hybrid search and RRF |
+| Document processing | PyPDF and text chunking |
+| Testing | Pytest |
+| Deployment configuration | Vercel |
 
-Evaluation was run against the 30-question ground-truth benchmark in `/eval/questions.json` (20 single-section, 5 multi-section synthesis, and 5 deliberately unanswerable questions):
+## Repository Structure
 
-| Metric | Target Threshold | Achieved Score | Status |
-| :--- | :--- | :--- | :--- |
-| **Faithfulness** | **&ge; 0.90** | **1.0000** | ✅ **PASS** |
-| **Answer Relevancy** | &ge; 0.80 | **0.8419** | ✅ **PASS** |
-| **Context Precision** | &ge; 0.80 | **0.7363** | ✅ **PASS** |
-| **Context Recall** | &ge; 0.85 | **0.9503** | ✅ **PASS** |
-| **Refusal Accuracy** | **100.0%** (5/5) | **100.0%** (5/5) | ✅ **PASS** |
+```text
+docanswer/
+├── api/
+│   ├── config.py
+│   ├── embeddings.py
+│   ├── generator.py
+│   ├── index.py
+│   ├── models.py
+│   ├── retriever.py
+│   └── utils.py
+├── app/
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx
+├── data/
+│   ├── acme_corp_hr_policy.md
+│   └── acme_corp_hr_policy.pdf
+├── eval/
+│   ├── questions.json
+│   └── results.md
+├── index/
+│   ├── bm25_index.json
+│   └── chroma_db/
+├── scripts/
+│   ├── evaluate.py
+│   ├── generate_pdf.py
+│   ├── ingest.py
+│   └── smoke_test.py
+├── tests/
+├── .env.example
+├── next.config.js
+├── requirements.txt
+├── vercel.json
+└── README.md
+```
 
-### Iterative Improvements & What Changed
-1. **Chunk Boundary & Section Heading Tracking:**
-   - *Initial Issue:* RecursiveCharacterTextSplitter was matching parenthetical cross-references such as `(see Section 9.4)` in the middle of sentences and incorrectly tagging entire chunks with the cross-referenced section.
-   - *Fix:* Restricted heading detection strictly to lines beginning with major section markers (`Section \d+` or `\d+\.\d+ Title`), preserving the true hierarchy across all 75 chunks.
-2. **Hybrid Retrieval with Reciprocal Rank Fusion (RRF):**
-   - *Initial Issue:* Pure vector search missed exact section numbers like "Section 2.4" or exact legal terms like "Garden Leave" when phrased conversationally.
-   - *Fix:* Combined dense cosine similarity with Okapi BM25 keyword search using RRF ($k=60$) and decimal token preservation (`2.4` preserved as a single token).
-3. **Programmatic Citation Verification & Zero-Hallucination Refusal:**
-   - *Initial Issue:* Unanswerable queries (e.g. pet insurance, stock options, company car) would occasionally attempt to extrapolate answers from adjacent benefit clauses.
-   - *Fix:* Enforced a content-coverage gate and a programmatic post-check validator that verifies every citation `[k]` in the generated answer exists in the returned passages; otherwise it triggers regeneration or forces the strict refusal string: *"I couldn't find this in the provided documents."*
+## Getting Started
 
----
+### Prerequisites
 
-## 🛠️ Tech Stack & Key Design Choices
+- Python 3.11 or later
+- Node.js 18 or later
+- npm
 
-- **LLM:** Anthropic Claude (`ANTHROPIC_MODEL`, default: `claude-3-5-sonnet-20241022`).
-- **Embeddings:** Hosted embeddings API (OpenAI `text-embedding-3-small` or Voyage AI `voyage-3-lite`). Local PyTorch/sentence-transformers are avoided to comply with Vercel's serverless function size limit (< 250MB uncompressed).
-- **Vector Database:** ChromaDB with offline pre-indexing committed to `/index` and cold-start `/tmp/index` mounting.
-- **Lexical Search:** Okapi BM25 (`rank-bm25`) with Decimal token preservation.
-- **Backend:** Python 3.11, FastAPI, Pydantic V2.
-- **Frontend:** Next.js (App Router), React 18, Tailwind CSS, Lucide Icons.
-- **Evaluation:** RAGAS benchmark metrics + automated refusal verification.
-- **Deployment:** Vercel (Next.js frontend + Python serverless API via `vercel.json`).
+### 1. Clone the repository
 
----
-
-## 🚀 How to Run Locally
-
-### 1. Prerequisites
-- Python 3.11+
-- Node.js 18+ and npm
-
-### 2. Clone and Setup Environment
 ```bash
-git clone <repo-url>
-cd docanswer
-
-# Create and configure .env
-cp .env.example .env
-# Edit .env with your ANTHROPIC_API_KEY and OPENAI_API_KEY (optional in offline test mode)
+git clone https://github.com/anasrizwan572-create/docanswer-rag.git
+cd docanswer-rag
 ```
 
-### 3. Install Backend Dependencies
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell, use:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Configure the provider credentials required by your selected model and embedding configuration. Never commit `.env` or expose API keys.
+
+### 3. Install backend dependencies
+
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-### 4. (Optional) Re-Generate Document and Index
-```bash
-# Generate the 16-page Acme Global HR Policy PDF
-python scripts/generate_pdf.py
+### 4. Run the backend
 
-# Ingest and build the Chroma + BM25 offline index in /index
-python scripts/ingest.py
+```bash
+python -m uvicorn api.index:app --reload --port 8001
 ```
 
-### 5. Run Pytest Suite and Evaluation
-```bash
-# Run unit tests (chunking, citation validation, refusal behavior)
-python -m pytest -v
+Backend API:
 
-# Run the 30-question RAGAS evaluation benchmark
+- Health: `http://127.0.0.1:8001/api/health`
+- Document information: `http://127.0.0.1:8001/api/document-info`
+- API documentation: `http://127.0.0.1:8001/docs`
+
+### 5. Install frontend dependencies
+
+```bash
+npm install
+```
+
+### 6. Run the frontend
+
+```bash
+npm run dev
+```
+
+Open `http://localhost:3000`.
+
+The Next.js development rewrite forwards `/api/*` requests to the local FastAPI service on port `8001`.
+
+## API Overview
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/health` | GET | Backend and index health |
+| `/api/document-info` | GET | Indexed document information |
+| `/api/query` | POST | Ask a question about the indexed document |
+
+See the automatically generated FastAPI documentation at `/docs` when the backend is running.
+
+## Testing
+
+Run the complete test suite:
+
+```bash
+python -m pytest tests/ -q
+```
+
+Run the evaluation benchmark:
+
+```bash
 python scripts/evaluate.py
 ```
 
-### 6. Install Frontend & Run Development Server
+The latest recorded test run completed with **23 passed**.
+
+### Evaluation Results
+
+The recorded 30-question benchmark contains:
+
+- 20 single-section questions
+- 5 multi-section questions
+- 5 deliberately unanswerable questions
+
+| Metric | Recorded result |
+|---|---:|
+| Faithfulness | 1.0000 |
+| Answer relevancy | 0.8419 |
+| Context precision | 0.7363 |
+| Context recall | 0.9503 |
+| Refusal accuracy | 100% (5/5) |
+
+**Evaluation note:** Context precision is below its stated target of 0.80. The benchmark report also identifies 75 source chunks, while the currently verified indexed database contains 98 chunks. These figures should be reconciled before presenting the benchmark as a final release result.
+
+## Indexing
+
+The repository includes a prebuilt ChromaDB and BM25 index.
+
+To rebuild the index from source documents:
+
 ```bash
-npm install
-
-# Start Next.js development server
-npm run dev
+python scripts/ingest.py
 ```
-Open [http://localhost:3000](http://localhost:3000) to query the document in the interactive UI.
 
----
+**Warning:** Rebuilding ingestion deletes and recreates the existing ChromaDB index. Back up the current index before running this command.
 
-## ⚖️ Trade-offs & Weakest Points of the System
+## Limitations
 
-### Key Trade-offs:
-1. **Offline Indexing vs. Live Upload:**
-   - *Trade-off:* Building the index offline and committing `/index` to the repository allows deployment on Vercel Serverless without needing a persistent database or heavy background worker.
-   - *Downside:* Users cannot upload their own documents at runtime in V1 without re-running `scripts/ingest.py` and redeploying.
-2. **Deterministic Fallback vs. Pure LLM Dependency:**
-   - *Trade-off:* The system includes a deterministic fallback pipeline that enables offline unit tests, evaluation benchmarks, and CI/CD pipelines to run with 100% test reproducibility even when hosted API quotas or keys are unavailable.
-   - *Downside:* The fallback uses extractive sentence matching rather than full multi-sentence abstractive prose synthesis.
+- The current application is centered on the included HR policy document.
+- Users cannot assume that arbitrary documents are available without ingestion.
+- Citation-reference validation does not independently prove that every generated factual statement is entailed by its cited passage.
+- Retrieval quality can vary with question wording and document structure.
+- Important policy decisions require checking the original source.
 
-### Weakest Points of the System:
-1. **Multi-Hop Synthesis Across Distant Sections:**
-   - While hybrid retrieval successfully pulls cross-section chunks (e.g., Section 4.4 tuition clawback and Section 9.4 final deductions), queries requiring more than 4 sections simultaneously may encounter context truncation if relevant passages fall outside the top-4 reranked window.
-2. **Cold Start Latency on Serverless:**
-   - Copying the `/index` directory (1.3MB) to `/tmp/index` on Vercel cold starts takes ~80-150ms. While imperceptible for human users, cold starts can add a 1-second delay compared to a long-running containerized service.
-3. **Table Structure Preservation in Dense Embeddings:**
-   - Dense embeddings can struggle with complex 2D multi-column tabular data (e.g. 401(k) vesting percentage tables). The BM25 lexical layer compensates by matching exact tokens, but converting tables to key-value synthetic sentences during ingestion is an area for further refinement.
+## Roadmap
 
----
+- [ ] Multi-document ingestion and collections
+- [ ] Secure document upload
+- [ ] Authentication and role-based access control
+- [ ] Persistent query and audit history
+- [ ] Improved table-aware document extraction
+- [ ] Stronger claim-to-source verification
+- [ ] Expanded retrieval and evaluation benchmarks
+- [ ] Continuous integration and deployment checks
 
-## 🗺️ Roadmap for Future Releases
+## Security
 
-- [ ] **Document Upload & Dynamic Ingestion:**
-  - Introduce document drag-and-drop upload in the UI.
-  - Swap local Chroma `/index` for **Chroma Cloud** or **pgvector on Supabase/Neon** behind the existing `Retriever` interface.
-- [ ] **Multi-Tenant User Accounts & Role-Based Access Control (RBAC):**
-  - Integrate NextAuth.js or Clerk for authentication.
-  - Organization-level access tiers (e.g. HR Admin vs. General Employee view).
-- [ ] **Search & Audit History:**
-  - Persist user queries, retrieved chunks, verification confidence, and employee acknowledgments to PostgreSQL for compliance auditing.
-- [ ] **Multi-Document Collections:**
-  - Support cross-document querying (e.g. Employee Handbook + Health Insurance Summary Plan Description + Remote Work Addendum) with source document filtering.
-- [ ] **Domain Specialization:**
-  - **DocAnswer Legal:** Fine-tuned cross-referencing for contract clauses, indemnification caps, and Delaware General Corporation Law.
-  - **DocAnswer Clinical:** HIPAA-compliant local deployment for clinical guidelines, hospital SOPs, and prescription dosage schedules.
+- Keep API credentials in environment variables.
+- Do not commit `.env` files, credentials, or private documents.
+- Review document access and deployment permissions before using sensitive company material.
+
+## License
+
+No license has been specified yet. All rights reserved unless a license is added to this repository.
 

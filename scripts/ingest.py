@@ -25,48 +25,50 @@ from api.embeddings import get_embedding_function
 
 
 HEADING_LINE_PATTERN = re.compile(
-    r"^(?:Section\s+\d+[:\.\s]+[A-Za-z0-9\s,&/–—\(\)]+|\d+\.\d+(?:\.\d+)?\s+[A-Za-z0-9\s,&/–—\(\)]+|##\s+[^\n]+|###\s+[^\n]+)$",
+    r"^(?:Section\s+\d+[:\.\s]+[A-Za-z0-9\s,&/Î“Ã‡Ã´Î“Ã‡Ã¶\(\)]+|\d+\.\d+(?:\.\d+)?\s+[A-Za-z0-9\s,&/Î“Ã‡Ã´Î“Ã‡Ã¶\(\)]+|##\s+[^\n]+|###\s+[^\n]+)$",
     re.IGNORECASE
 )
 
 
+
 def extract_pages_with_metadata(pdf_path: Path) -> List[Dict[str, Any]]:
     """
-    Parses PDF page by page and tracks active section headings.
+    Parses PDF page by page and preserves the section active
+    at the beginning of each page.
     """
     reader = pypdf.PdfReader(str(pdf_path))
     pages_data = []
     current_section = "General Information"
 
     for page_idx, page in enumerate(reader.pages, start=1):
+        page_start_section = current_section
+
         text = page.extract_text() or ""
         lines = [line.strip() for line in text.split("\n") if line.strip()]
-
         cleaned_lines = []
+
         for line in lines:
-            # Skip page footer and header stamps
             if (
                 re.match(r"^Page \d+ of \d+", line)
                 or "CONFIDENTIAL & PROPRIETARY" in line
                 or "Document Ref: ACME" in line
-                or "Acme Technologies Inc. — Global Employee Handbook" in line
+                or "Acme Technologies Inc." in line
             ):
                 continue
 
-            # Check if this line is an actual section heading
             if HEADING_LINE_PATTERN.match(line) and len(line) < 90:
-                current_section = line.replace("#", "").strip()
+                current_section = line.replace('#', '').strip()
 
             cleaned_lines.append(line)
 
-        page_text = "\n".join(cleaned_lines)
         pages_data.append({
             "page_num": page_idx,
-            "section": current_section,
-            "text": page_text
+            "section": page_start_section,
+            "text": "\n".join(cleaned_lines)
         })
 
     return pages_data
+
 
 
 def detect_chunk_heading(chunk_text: str, default_section: str) -> str:
@@ -82,10 +84,14 @@ def detect_chunk_heading(chunk_text: str, default_section: str) -> str:
     return default_section
 
 
-def chunk_document(pages_data: List[Dict[str, Any]], source_name: str) -> List[Dict[str, Any]]:
+
+def chunk_document(
+    pages_data: List[Dict[str, Any]],
+    source_name: str
+) -> List[Dict[str, Any]]:
     """
-    Chunks document using RecursiveCharacterTextSplitter (~800 chars, 150 overlap).
-    Splits on headings and paragraphs first, avoiding mid-sentence breaks.
+    Splits each section independently.
+    Overlap is allowed within a section but never across section boundaries.
     """
     splitter = RecursiveCharacterTextSplitter(
         chunk_size=800,
@@ -99,33 +105,60 @@ def chunk_document(pages_data: List[Dict[str, Any]], source_name: str) -> List[D
 
     for page_data in pages_data:
         page_num = page_data["page_num"]
-        default_section = page_data["section"]
-        page_text = page_data["text"]
+        active_section = page_data["section"]
+        current_lines = []
+        segments = []
 
-        raw_chunks = splitter.split_text(page_text)
-        current_chunk_section = default_section
-
-        for sub_idx, chunk_text in enumerate(raw_chunks):
-            chunk_text = chunk_text.strip()
-            if not chunk_text or len(chunk_text) < 25:
+        for line in page_data["text"].splitlines():
+            line = line.strip()
+            if not line:
                 continue
 
-            chunk_counter += 1
-            chunk_id = f"chunk_p{page_num}_{sub_idx + 1}"
+            is_heading = (
+                HEADING_LINE_PATTERN.match(line) is not None
+                and len(line) < 90
+            )
 
-            # Detect section heading for this chunk
-            section = detect_chunk_heading(chunk_text, current_chunk_section)
-            current_chunk_section = section
+            if is_heading:
+                if current_lines:
+                    segments.append({
+                        "section": active_section,
+                        "text": "\n".join(current_lines)
+                    })
 
-            all_chunks.append({
-                "chunk_id": chunk_id,
-                "source": source_name,
-                "page": page_num,
-                "section": section,
-                "text": chunk_text
+                active_section = line.replace("#", "").strip()
+                current_lines = [line]
+            else:
+                current_lines.append(line)
+
+        if current_lines:
+            segments.append({
+                "section": active_section,
+                "text": "\n".join(current_lines)
             })
 
+        for segment in segments:
+            section = segment["section"]
+            raw_chunks = splitter.split_text(segment["text"])
+
+            for chunk_text in raw_chunks:
+                chunk_text = chunk_text.strip()
+
+                if not chunk_text or len(chunk_text) < 25:
+                    continue
+
+                chunk_counter += 1
+
+                all_chunks.append({
+                    "chunk_id": f"chunk_p{page_num}_{chunk_counter}",
+                    "source": source_name,
+                    "page": page_num,
+                    "section": section,
+                    "text": chunk_text
+                })
+
     return all_chunks
+
 
 
 def build_bm25_index(chunks: List[Dict[str, Any]], output_file: Path):
@@ -222,7 +255,7 @@ def main():
     print(f"[4/4] Building Chroma index...")
     build_chroma_index(chunks, settings.INDEX_DIR)
 
-    print("\n✅ Ingestion complete! Index committed to /index.")
+    print("\nÎ“Â£Ã  Ingestion complete! Index committed to /index.")
 
 
 if __name__ == "__main__":
