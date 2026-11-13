@@ -24,3 +24,4 @@ def test_retriever_exact_section_boost():
     chunks = retriever.retrieve("What are the terms of Section 2.4?", top_k=4)
     top_chunk = chunks[0]
     assert "2.4" in top_chunk.section or "2.4" in top_chunk.text
+

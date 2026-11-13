@@ -39,3 +39,4 @@ for idx, q in enumerate(smoke_questions, 1):
     print("-" * 75)
 
 print("\n✅ Smoke test completed successfully!")
+

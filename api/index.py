@@ -87,3 +87,4 @@ async def query_document(request: Request, body: QueryRequest) -> QueryResponse:
         return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal generation error: {str(e)}")
+

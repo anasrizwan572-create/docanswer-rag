@@ -36,3 +36,4 @@ def test_heading_detection_avoids_parenthetical_citations():
     valid_heading = "3.2 Sick Leave and Medical Certification\nEmployees receive 10 days..."
     detected_valid = detect_chunk_heading(valid_heading, default_sec)
     assert "3.2 Sick Leave" in detected_valid
+

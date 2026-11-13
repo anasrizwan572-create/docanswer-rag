@@ -209,3 +209,4 @@ Open [http://localhost:3000](http://localhost:3000) to query the document in the
 - [ ] **Domain Specialization:**
   - **DocAnswer Legal:** Fine-tuned cross-referencing for contract clauses, indemnification caps, and Delaware General Corporation Law.
   - **DocAnswer Clinical:** HIPAA-compliant local deployment for clinical guidelines, hospital SOPs, and prescription dosage schedules.
+

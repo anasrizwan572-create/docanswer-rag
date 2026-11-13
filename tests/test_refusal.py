@@ -48,3 +48,4 @@ def test_refusal_empty_chunks():
     assert resp.found is False
     assert resp.answer == REFUSAL_STRING
     assert resp.citations == []
+

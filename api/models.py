@@ -38,3 +38,4 @@ class RetrievedChunk(BaseModel):
     section: str
     text: str
     score: float = 0.0
+
